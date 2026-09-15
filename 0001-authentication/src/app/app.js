@@ -2,6 +2,9 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import userModel from "../model/user.model.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -26,7 +29,7 @@ app.post("/api/auth/register", async (req, res) => {
         email: user.email,
         _id: user._id,
       },
-      "cc828561ce21f21430e5dcaa471194abc46875e7d51bd3651debd605b802b586",
+      process.env.JWT_SECRET,
     );
 
     res.status(201).json({
