@@ -57,4 +57,39 @@ app.get("/api/auth/me", authMiddleware, async (req, res) => {
   console.log("user:", user);
   res.status(200).json({ user });
 });
+
+// login route:
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await userModel.findOne({ email });
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!user || !isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // token generation:
+    const token = jwt.sign(
+      {
+        name: user.name,
+        email: user.email,
+        _id: user._id,
+      },
+      process.env.JWT_SECRET,
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      data: { user: { name: user.name, email: user.email, id: user._id } },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+});
 export default app;
