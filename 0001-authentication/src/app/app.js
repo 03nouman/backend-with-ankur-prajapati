@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import userModel from "../model/user.model.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 
@@ -20,7 +21,13 @@ app.post("/api/auth/register", async (req, res) => {
     console.log("body: ", name, email, password);
 
     //1.  save user to database:
-    const user = await userModel.create({ name, email, password });
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = await userModel.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
 
     // token generation:
     const token = jwt.sign(
