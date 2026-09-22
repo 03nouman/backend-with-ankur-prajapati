@@ -11,7 +11,7 @@ const router = Router();
 
 /**
  @POST /api/auth/register
- */
+ */ 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
