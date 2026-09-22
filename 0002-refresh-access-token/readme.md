@@ -6,3 +6,6 @@ Flow of the app:
 2. connect to database
     => db.js
     -MONGO_URI
+
+3. create schema/model
+     
