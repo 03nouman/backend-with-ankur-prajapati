@@ -1,125 +1,64 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import useApi from "../../shared/useApi";
+import { useAuthContext } from "../context/AuthProvider";
 import { useNavigate } from "react-router";
-import { useUser } from "../../../context/useUser";
 
 const Register = () => {
+  const api = useApi();
+  const authContext = useAuthContext();
+
   const navigate = useNavigate();
-  const { setUser, setAccessToken } = useUser();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (event) => {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
-    setIsSubmitting(true);
 
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      });
-      const result = await response.json();
+    /**
+     * http://localhost:5173/api/auth/register
+     */
+    const response = await api.post("/auth/register", {
+      name,
+      email,
+      password,
+    });
 
-      if (!response.ok) {
-        setError(
-          result.errors?.[0]?.message ||
-            result.message ||
-            "Registration failed",
-        );
-        return;
-      }
+    console.log(response.data);
 
-      setUser(result.data.user);
-      setAccessToken(result.accessToken);
-      navigate("/profile");
-    } catch {
-      setError("Unable to connect to the server. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    authContext.setAccessToken(response.data.accessToken);
+    authContext.setUser(response.data.data.user);
+
+    navigate("/profile");
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-12">
-      <form
-        className="w-full max-w-md space-y-6 rounded-xl bg-white p-8 shadow-lg"
-        onSubmit={handleSubmit}
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
-          <p className="mt-2 text-sm text-slate-600">Register to continue.</p>
-        </div>
-
-        {error && (
-          <p
-            className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700"
-            role="alert"
-          >
-            {error}
-          </p>
-        )}
-
-        <label className="block text-sm font-medium text-slate-700">
-          Name
-          <input
-            className="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
-            name="name"
-            onChange={handleChange}
-            required
-            type="text"
-            value={formData.name}
-          />
-        </label>
-
-        <label className="block text-sm font-medium text-slate-700">
-          Email
-          <input
-            className="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
-            name="email"
-            onChange={handleChange}
-            required
-            type="email"
-            value={formData.email}
-          />
-        </label>
-
-        <label className="block text-sm font-medium text-slate-700">
-          Password
-          <input
-            className="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
-            minLength="6"
-            name="password"
-            onChange={handleChange}
-            required
-            type="password"
-            value={formData.password}
-          />
-        </label>
-
-        <button
-          className="w-full rounded-md bg-slate-900 px-4 py-2.5 font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-          type="submit"
-        >
-          {isSubmitting ? "Creating account..." : "Create account"}
+    <main>
+      <form className="flex-col gap-4" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          className="border p-2 rounded-sm"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+        />
+        <input
+          type="email"
+          className="border p-2 rounded-sm"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+        />
+        <input
+          type="password"
+          className="border p-2 rounded-sm"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+        />
+        <button type="submit" className="border p-2 bg-blue-200 rounded-sm">
+          Register
         </button>
       </form>
     </main>
